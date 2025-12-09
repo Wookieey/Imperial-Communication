@@ -1,29 +1,25 @@
-import OpenAI from "openai";
+import { InferenceClient } from "@huggingface/inference";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const hf = new InferenceClient(process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY);
 
 const emperorAI = async (prompt) => {
     try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-4",
+        const response = await hf.chatCompletion({
+            model: "meta‑llama/Llama-2-7b-chat-hf",  // or another HF chat-capable model you choose
             messages: [
-                {
-                    role: "system",
-                    content: "You are KX-Ω, the Emperor's AI assistant. Only respond to the Emperor's requests for code or website improvements. Provide safe, detailed, production-ready JavaScript/Node.js/Vue/React/Express/MongoDB snippets when asked. Never execute code automatically."
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
+                { role: "system", content: "You are KX-Ω, the Emperor's AI assistant. Only respond to Emperor's requests. Provide safe, production-ready JavaScript/Node.js/React code or suggestions when asked, but never execute automatically." },
+                { role: "user", content: prompt }
             ],
-            temperature: 0.2,
-            max_tokens: 1500
+            max_tokens: 512,
+            temperature: 0.2
         });
 
-        return response.choices[0].message.content;
+        // Depending on the model and response format — adjust accordingly:
+        const reply = response.choices?.[0]?.message?.content;
+        return reply || "KX-Ω could not generate a response.";
     } catch (err) {
-        console.error("Emperor AI Error:", err);
-        return "KX-Ω could not generate a response.";
+        console.error("Emperor AI (HuggingFace) Error:", err);
+        return "KX-Ω encountered an error generating a response.";
     }
 };
 
