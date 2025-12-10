@@ -1,39 +1,20 @@
 import express from "express";
-import { authenticateUser } from "../middleware/auth.js";
-import upload from "../middleware/fileUpload.js";
+import upload from "../services/upload.js";
 import User from "../models/User.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Get own profile
-router.get("/me", authenticateUser, async (req, res) => {
-    res.json(req.user);
-});
-
-// Update bio
-router.post("/bio", authenticateUser, async (req, res) => {
-    const { bio } = req.body;
-
-    req.user.bio = bio;
-    await req.user.save();
-
-    res.json({ message: "Bio updated." });
+router.get("/me", auth, async (req, res) => {
+  res.json(req.user);
 });
 
 // Upload profile picture
-router.post(
-    "/upload",
-    authenticateUser,
-    upload.single("profilePic"),
-    async (req, res) => {
-        req.user.profilePic = req.file.path;
-        await req.user.save();
-
-        res.json({
-            message: "Profile picture updated.",
-            path: req.file.path
-        });
-    }
-);
+router.post("/upload", auth, upload.single("image"), async (req, res) => {
+  await User.findByIdAndUpdate(req.user.id, {
+    profilePic: `/uploads/${req.file.filename}`
+  });
+  res.json({ msg: "Uploaded", file: req.file.filename });
+});
 
 export default router;
