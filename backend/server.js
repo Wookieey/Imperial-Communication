@@ -4,15 +4,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
 import connectDB from "./config/db.js";
-
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/users.js";
-import roomRoutes from "./routes/rooms.js";
-import messageRoutes from "./routes/messages.js";
-import adminRoutes from "./routes/admin.js";
-import emperorRoutes from "./routes/emperor.js";
-
-import initSockets from "./sockets/index.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import { verifySocketToken } from "./middleware/authSocket.js";
+import handleSocketEvents from "./socket/socketHandler.js";
 
 dotenv.config();
 connectDB();
@@ -20,31 +17,32 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// CORS
-app.use(cors({
-    origin: process.env.CLIENT_ORIGIN,
-    credentials: true
-}));
-
+// Middlewares
+app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/rooms", roomRoutes);
 app.use("/messages", messageRoutes);
-app.use("/admin", adminRoutes);
-app.use("/emperor", emperorRoutes);
 
-// Socket.io Initialization
+// Socket.io Setup
 const io = new Server(server, {
-    cors: {
-        origin: process.env.CLIENT_ORIGIN,
-        methods: ["GET", "POST"]
-    }
+  cors: {
+    origin: "*",
+  }
 });
 
-initSockets(io);
+io.use(verifySocketToken);
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Imperial ComNet Backend running on port ${PORT}`));
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.user.username);
+  handleSocketEvents(io, socket);
+});
+
+// Start Server
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+  console.log(`Imperial Server active on port ${PORT}`);
+});
