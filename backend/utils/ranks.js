@@ -1,13 +1,9 @@
-export default {
-    "Stormtrooper": 1,
-    "Lieutenant": 2,
-    "Captain": 3,
-    "Commander": 4,
-    "Major": 5,
-    "Colonel": 6,
-    "General": 7,
-    "Admiral": 8,
-    "Moff": 9,
-    "Grand Moff": 10,
-    "Emperor": 11
-};
+export const RANKS = [
+  "Stormtrooper","Lieutenant","Captain","Commander","Major","Colonel",
+  "General","Admiral","Moff","Grand Moff","Emperor"
+];
+
+export const rankValue = (r) => RANKS.indexOf(r);
+
+export const canCreatePrivateRoom = (rank) => rankValue(rank) >= rankValue("Commander");
+export const canCreatePublicRoom  = (rank) => rankValue(rank) >= rankValue("Admiral");
