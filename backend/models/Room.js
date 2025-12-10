@@ -1,22 +1,10 @@
 import mongoose from "mongoose";
 
-const roomSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    isPrivate: { type: Boolean, default: false },
+const RoomSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  type: { type: String, enum: ["public", "private"], required: true },
+  allowedRanks: [String],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+}, { timestamps: true });
 
-    minRankWeight: { type: Number, default: 1 }, // Stormtrooper default
-
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    },
-
-    kxUnitId: { type: String, required: true }, // ex: "KX-13"
-
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-export default mongoose.model("Room", roomSchema);
+export default mongoose.model("Room", RoomSchema);
